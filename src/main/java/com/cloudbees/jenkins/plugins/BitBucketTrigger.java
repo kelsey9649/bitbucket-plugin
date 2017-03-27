@@ -5,13 +5,13 @@ import hudson.Util;
 import hudson.console.AnnotatedLargeText;
 import hudson.model.Action;
 import hudson.model.CauseAction;
-import hudson.model.Hudson;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.SequentialExecutionQueue;
 import hudson.util.StreamTaskListener;
+import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
 import jenkins.triggers.SCMTriggerItem;
 import org.apache.commons.jelly.XMLOutput;
@@ -170,7 +170,7 @@ public class BitBucketTrigger extends Trigger<Job<?, ?>> {
 
     @Extension
     public static class DescriptorImpl extends TriggerDescriptor {
-        private transient final SequentialExecutionQueue queue = new SequentialExecutionQueue(Hudson.MasterComputer.threadPoolForRemoting);
+        private transient final SequentialExecutionQueue queue = new SequentialExecutionQueue(Jenkins.MasterComputer.threadPoolForRemoting);
 
         @Override
         public boolean isApplicable(Item item) {
