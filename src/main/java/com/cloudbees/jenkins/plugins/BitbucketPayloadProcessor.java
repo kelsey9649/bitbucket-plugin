@@ -91,15 +91,66 @@ public class BitbucketPayloadProcessor {
     "user": "marcus"
 }
 */
-    private void processPostServicePayload(JSONObject payload) {
+    private void processPostServicePayload(JSONObject payload)
+    {
+        if (!payload.containsKey("repository")) {
+            LOGGER.log(Level.WARNING, "Stopping processing. Missing the repository key in the payload.");
+            return;
+        }
+
         JSONObject repo = payload.getJSONObject("repository");
         LOGGER.log(Level.INFO, "Received commit hook notification for {0}", repo);
 
-        String user = payload.getString("user");
-        String url = payload.getString("canon_url") + repo.getString("absolute_url");
-        String scm = repo.getString("scm");
+        String user = getUser(payload);
+        String url = getURL(payload);
+        String scm = getSCM(payload);
 
         probe.triggerMatchingJobs(user, url, scm, payload.toString());
+    }
+
+    private String getUser(JSONObject payload)
+    {
+        if (payload.containsKey("user")) {
+            return payload.getString("user");
+        }
+
+        if (payload.containsKey("author")) {
+            JSONObject author = payload.getJSONObject("author");
+            return author.getString("username");
+        }
+
+        return "";
+    }
+
+    private String getURL(JSONObject payload)
+    {
+        if (payload.containsKey("repository") && payload.containsKey("canon_url")) {
+
+            JSONObject repo = payload.getJSONObject("repository");
+            return payload.getString("canon_url") + repo.getString("absolute_url");
+        }
+
+        if (payload.containsKey("repository")) {
+
+            JSONObject repo = payload.getJSONObject("repository");
+            return repo.getJSONObject("links").getJSONObject("html").getString("href");
+        }
+
+        return "";
+    }
+
+    private String getSCM(JSONObject payload)
+    {
+        if (payload.containsKey("scm")) {
+            return payload.getString("scm");
+        }
+
+        if (payload.containsKey("repository")) {
+            JSONObject repo = payload.getJSONObject("repository");
+            return repo.getString("scm");
+        }
+
+        return "";
     }
 
     private static final Logger LOGGER = Logger.getLogger(BitbucketPayloadProcessor.class.getName());
